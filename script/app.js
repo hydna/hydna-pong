@@ -394,6 +394,9 @@ $(document).ready(function() {
     gamestate = "server-mode";
     gamestream = remotestream;
     
+    leftscore.score = 0;
+    rightscore.score = 0;
+    
     function gametickCallback() {
       // Check if client is still connected, 
       // and if game is running. Send out
@@ -530,6 +533,9 @@ $(document).ready(function() {
     
     gamestate = "client-mode";
     gamestream = remotestream;
+    
+    leftscore.score = 0;
+    rightscore.score = 0;
     
     function gametickCallback() {
       // Check if client is still connected, 
