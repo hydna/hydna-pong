@@ -34,6 +34,9 @@ $(document).ready(function() {
   var leftPaddle;
   var rightPaddle;
   var ball;
+  
+  leftscore.score = 0;
+  rightscore.score = 0;
 
   // Set the width and height of the canvas. We are running 
   // a multiplayer game, so each client must have the same 
@@ -808,8 +811,6 @@ $(document).ready(function() {
   
   function resetLeftPaddle() {
     // Create left paddle (this is you)
-    
-    leftscore.score = 0;
 
     leftPaddle = { pos: { x: PADDLE_PADDING
                         , y: PADDLE_PADDING
@@ -823,8 +824,6 @@ $(document).ready(function() {
 
   function resetRightPaddle() {
     // Create right paddle (this is you opponent)
-
-    rightscore.score = 0;
 
     rightPaddle = { pos: { x: SCENE_WIDTH - PADDLE_THICKNESS - PADDLE_PADDING
                          , y: PADDLE_PADDING
@@ -840,13 +839,13 @@ $(document).ready(function() {
     // Resets balls position (centers it) and randomly generates
     // it's starting angle.
     
-    var angle = Math.random() * 360;
+    var angle = parseInt(Math.random() * 180);
     
     if (gamestate == "practice-mode") {
       // Set ball starting angle to target the 
       // left paddle. 
-      
-      angle = -70;
+
+      angle = 30;
     }
 
     ball = { pos: { x: (SCENE_WIDTH / 2) + (BALL_SIZE / 2)
