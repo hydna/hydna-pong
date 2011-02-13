@@ -18,7 +18,7 @@ $(document).ready(function() {
   var ROOM_START_ADDR = 0x10000000;
   var ROOM_END_ADDR = 0xF0000000;
   var CONNECTION_TIMEOUT = 4000;
-  var MAX_SCORE = 2;
+  var MAX_SCORE = 5;
   
   // Game variables
   var canvas = $("canvas");
