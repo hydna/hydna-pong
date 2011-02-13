@@ -1,0 +1,176 @@
+* {
+    margin: 0;
+    padding: 0;
+    line-height: normal;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: arial, sans-serif;
+    overflow: hidden;
+    background: black;
+}
+
+/* Header */
+
+header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 40px;
+    background: black;
+    color: white;
+}
+
+header h1 {
+    position: absolute;
+    top: 11px;
+    left: 10px;
+    font-size: 14px;
+    margin: 0;
+}
+
+header #color {
+    position: absolute;
+    right: 120px;
+    top: 5px;
+}
+
+header #stroke {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+}
+
+header p.status {
+    position: absolute;
+  
+    color: white;
+  
+    text-align: center;
+    text-transform: uppercase;
+  
+    font-size: 0.7em;
+    font-weight: bold;
+  
+    width: 100%;
+  
+    padding-top: 14px;
+}
+
+header p.status .dots {
+  
+    display: inline-block;
+  
+    width: 20px;
+    
+    text-align: left;
+}
+
+header span.score {
+    position: absolute;
+
+    font-family: 'Bitstream Vera Sans Mono','Courier',monospace;
+    
+    font-size: 1.6em;
+    
+    padding: 4px;
+}
+
+header span.your-score {
+    left: 0;
+    padding-left: 14px;
+    text-align: left;
+}
+
+header span.opponent-score {
+    right: 0;
+
+    padding-right: 14px;
+  
+    text-align: right;
+}
+
+/* Container */
+
+section#game {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    -webkit-touch-callout: none ;
+    -webkit-user-select: none ;
+}
+
+
+section#info-dialog {
+
+    position: absolute;
+    
+    background-color: black;
+    
+    border: 3px solid white;
+    
+    color: white;
+    
+    font-weight: bold;
+    font-size: 0.8em;
+    
+    margin-left: 50%;
+    
+    top: 200px;
+    left: -200px;
+    width: 400px;
+    
+    padding: 10px;
+}
+
+section#info-dialog h1 {
+    text-align: center;
+    
+    font-size: 1.4em;
+    
+    margin-bottom: 14px;
+}
+
+section#info-dialog p {
+    margin-bottom: 14px;
+}
+
+section#info-dialog a {
+    color: white;
+}
+
+section#info-dialog button {
+    position: relative;
+    
+    background: white;
+  
+    border: none;
+        
+    color: black;
+    
+    padding: 6px;
+    
+    width: 150px;
+    
+    left: -75px;
+    
+    margin-left: 50%;
+}
