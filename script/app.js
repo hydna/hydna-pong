@@ -445,7 +445,7 @@ $(document).ready(function() {
       
       tick++;
       
-      if (tick % 30 == 0) {
+      if (tick % 10 == 0) {
         send(remotestream, { op: "update"
                            , p1: leftPaddle.pos.y
                            , p2: rightPaddle.pos.y
