@@ -866,20 +866,32 @@ $(document).ready(function() {
     // Resets balls position (centers it) and randomly generates
     // it's starting angle.
     
-    var angle = parseInt(Math.random() * 180);
+    var angle;
     
     if (gamestate == "practice-mode") {
       // Set ball starting angle to target the 
       // left paddle. 
 
-      angle = 30;
+      angle = -127 - parseInt(Math.random() * 90);
+    } else {
+      // First randomize which direction to 
+      // spawn. Then randomize the actuall 
+      // angle
+      
+      if (Math.floor(Math.random() * 2)) {
+        angle = -127 - parseInt(Math.random() * 90);
+      } else {
+        angle = -45 + parseInt(Math.random() * 90);
+      }
     }
+    
+    console.log("angle %s", angle);
 
     ball = { pos: { x: (SCENE_WIDTH / 2) + (BALL_SIZE / 2)
                   , y: (SCENE_HEIGHT / 2) + (BALL_SIZE / 2)
                   }
-           , vel: { x: Math.cos(angle - Math.PI / 2) * (BALL_SPEED) 
-                  , y: Math.sin(angle - Math.PI / 2) * (BALL_SPEED)
+           , vel: { x: Math.cos(angle * (Math.PI / 180)) * (BALL_SPEED) 
+                  , y: Math.sin(angle * (Math.PI / 180)) * (BALL_SPEED)
                   }
            };
   }
