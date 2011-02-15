@@ -166,6 +166,7 @@ $(document).ready(function() {
     // Move paddles based on keystate.
     
     if (leftPaddle) {
+      
       if (leftPaddle.keystates[KEYUP]) { 
         leftPaddle.pos.y -= (PADDLE_SPEED * delta);
       } else if (leftPaddle.keystates[KEYDOWN]) {
@@ -177,9 +178,19 @@ $(document).ready(function() {
       } else if (leftPaddle.pos.y < 0) {
         leftPaddle.pos.y = 0;
       }
+      
+      if ("y" in leftPaddle.remotepos && 
+          Math.abs(leftPaddle.pos.y - leftPaddle.remotepos.y) > 0.01) {
+        // Do a simple interpolation, to remove some lag.
+
+        leftPaddle.pos.y += (leftPaddle.remotepos.y - leftPaddle.pos.y) / 50;
+      }
+      
     }
     
     if (rightPaddle) {
+
+
       if (rightPaddle.keystates[KEYUP]) { 
         rightPaddle.pos.y -= (PADDLE_SPEED * delta);
       } else if (rightPaddle.keystates[KEYDOWN]) {
@@ -191,6 +202,14 @@ $(document).ready(function() {
       } else if (rightPaddle.pos.y < 0) {
         rightPaddle.pos.y = 0;
       }
+      
+      if ("y" in rightPaddle.remotepos && 
+          Math.abs(rightPaddle.pos.y - rightPaddle.remotepos.y) > 0.01) {
+        // Do a simple interpolation, to remove some lag.
+
+        rightPaddle.pos.y += (rightPaddle.remotepos.y - rightPaddle.pos.y) / 50;
+      }
+      
     }
   }
   
@@ -633,11 +652,11 @@ $(document).ready(function() {
           ball.vel.x = -msg.ballvel.x;
           
           if (leftPaddle) {
-            leftPaddle.pos.y = msg.p2;
+            leftPaddle.remotepos.y = msg.p2;
           }
 
           if (rightPaddle) {
-            rightPaddle.pos.y = msg.p1;
+            rightPaddle.remotepos.y = msg.p1;
           }
           
           connectionTimeout = Date.now();
@@ -821,6 +840,7 @@ $(document).ready(function() {
     leftPaddle = { pos: { x: PADDLE_PADDING
                         , y: PADDLE_PADDING
                         }
+                 , remotepos: {}
                  , keystates: {} 
                  };
 
@@ -834,6 +854,7 @@ $(document).ready(function() {
     rightPaddle = { pos: { x: SCENE_WIDTH - PADDLE_THICKNESS - PADDLE_PADDING
                          , y: PADDLE_PADDING
                          }
+                  , remotepos: {}
                   , keystates: {} 
                   };
 
