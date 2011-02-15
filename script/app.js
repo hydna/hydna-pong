@@ -7,9 +7,9 @@ $(document).ready(function() {
   var PADDLE_THICKNESS = 10;
   var PADDLE_HEIGHT = 100;
   var PADDLE_PADDING = 10;
-  var PADDLE_SPEED = 120;
+  var PADDLE_SPEED = 190;
   var BALL_SIZE = 8;
-  var BALL_SPEED = 240;
+  var BALL_SPEED = 320;
   var SCENE_WIDTH = 852;
   var SCENE_HEIGHT = 480;
   var KEYUP = 38;
@@ -885,8 +885,6 @@ $(document).ready(function() {
       }
     }
     
-    console.log("angle %s", angle);
-
     ball = { pos: { x: (SCENE_WIDTH / 2) + (BALL_SIZE / 2)
                   , y: (SCENE_HEIGHT / 2) + (BALL_SIZE / 2)
                   }
