@@ -939,8 +939,8 @@ $(document).ready(function() {
       tickCallback();
     }
     
-    // Render scene 24 frames per sec
-    gameloopId = setInterval(gameloop, 1000 / 24);
+    // Render scene 60 frames per sec
+    gameloopId = setInterval(gameloop, 1000 / 60);
   }
   
 });
