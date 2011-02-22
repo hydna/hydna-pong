@@ -378,7 +378,7 @@ $(document).ready(function() {
       
       if (msg.op !== "claim" || msg.id !== random) {
 
-        stream.end();
+        stream.close();
         stream = null;
 
         clearTimeout(claimTimeoutId);
@@ -429,8 +429,8 @@ $(document).ready(function() {
         rightPaddle = null;
         ball = null;
         
-        mystream.end();
-        remotestream.end();
+        mystream.close();
+        remotestream.close();
         gamestream = null;
         
         resetGameLoop();
@@ -450,8 +450,8 @@ $(document).ready(function() {
         rightPaddle = null;
         ball = null;
 
-        mystream.end();
-        remotestream.end();
+        mystream.close();
+        remotestream.close();
         gamestream = null;
 
         resetGameLoop();
@@ -568,8 +568,8 @@ $(document).ready(function() {
         rightPaddle = null;
         ball = null;
         
-        mystream.end();
-        remotestream.end();
+        mystream.close();
+        remotestream.close();
         gamestream = null;
         
         resetGameLoop();
@@ -615,8 +615,8 @@ $(document).ready(function() {
           rightPaddle = null;
           ball = null;
 
-          mystream.end();
-          remotestream.end();
+          mystream.close();
+          remotestream.close();
           gamestream = null;
 
           resetGameLoop();
@@ -740,7 +740,7 @@ $(document).ready(function() {
 
           clearTimeout(jointimerid);
 
-          remotestream.end();
+          remotestream.close();
           remotestream = null;
           break;
 
@@ -754,7 +754,7 @@ $(document).ready(function() {
 
           clearTimeout(ticktimerid);
 
-          announcestream.end();
+          announcestream.close();
 
           enterClientMode(mystream, remotestream);
           break;
@@ -783,7 +783,7 @@ $(document).ready(function() {
       jointimerid = setTimeout(function() {
         // Give timeout one second to accept. 
 
-        remotestream.end();
+        remotestream.close();
         remotestream = null;
       }, 1000);
 
@@ -822,7 +822,7 @@ $(document).ready(function() {
         
         clearTimeout(ticktimerid);
 
-        announcestream.end();
+        announcestream.close();
         
         remotestream = new HydnaStream(HYDNA_URI + msg.id, "w");
 
@@ -940,8 +940,7 @@ $(document).ready(function() {
     }
     
     // Render scene 24 frames per sec
-    // setTimeout(gameloop, 1000 / 24);
-    gameloopId = setInterval(gameloop, 1000 / 60);
+    gameloopId = setInterval(gameloop, 1000 / 24);
   }
   
 });
