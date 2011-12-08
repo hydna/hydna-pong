@@ -1,7 +1,7 @@
 $(document).ready(function() {
   
   // Game contants
-  var HYDNA_URI = "demo.hydna.net/";
+  var HYDNA_URI = "public.hydna.net/";
   var HYDNA_ANNOUNCE_ID = 5000;
   var DELTA_TIME = 0.017;
   var PADDLE_THICKNESS = 10;
@@ -29,7 +29,7 @@ $(document).ready(function() {
   var ctx = canvase.getContext("2d");
   var keystates = {};
   var gamestate;
-  var gamestream = null;
+  var gamechan = null;
   var gameloopId;
   var leftPaddle;
   var rightPaddle;
@@ -55,10 +55,10 @@ $(document).ready(function() {
       if (!leftPaddle.keystates[event.keyCode]) {
         leftPaddle.keystates[event.keyCode] = true;
 
-        if (gamestream) {
-          // Send update to game stream if exists.
+        if (gamechan) {
+          // Send update to game channel if exists.
 
-          send(gamestream, { op: "action"
+          send(gamechan, { op: "action"
                            , states: leftPaddle.keystates
                            });
         }
@@ -77,10 +77,10 @@ $(document).ready(function() {
       if (leftPaddle.keystates[event.keyCode]) {
         leftPaddle.keystates[event.keyCode] = false;
 
-        if (gamestream) {
-          // Send update to game stream if exists.
+        if (gamechan) {
+          // Send update to game channel if exists.
 
-          send(gamestream, { op: "action"
+          send(gamechan, { op: "action"
                            , states: leftPaddle.keystates
                            });
         }
@@ -95,15 +95,15 @@ $(document).ready(function() {
   
     // Put game in practice-mode.
     enterPracticeMode();
-    
-    claimStream(function(mystream, addr) {
-      // A stream was claimed. Initialize the 
-      // `announce` stream.
 
-      var announce = new HydnaStream(HYDNA_URI + HYDNA_ANNOUNCE_ID, 'rw');
+    claimStream(function(mychan, addr) {
+      // A channel was claimed. Initialize the 
+      // `announce` channel.
+
+      var announce = new HydnaChannel(HYDNA_URI + HYDNA_ANNOUNCE_ID, 'rw');
 
       announce.onopen = function() {
-        findGame(announce, mystream, addr);
+        findGame(announce, mychan, addr);
       }
     });
   });
@@ -241,8 +241,8 @@ $(document).ready(function() {
         rightscore.score++;
         rightscore.text(rightscore.score);
 
-        if (gamestream) {
-          send(gamestream, { op: "newball"
+        if (gamechan) {
+          send(gamechan, { op: "newball"
                            , ball: ball
                            , leftscore: leftscore.score
                            , rightscore: rightscore.score 
@@ -261,8 +261,8 @@ $(document).ready(function() {
         leftscore.score++;
         leftscore.text(rightscore.score);
 
-        if (gamestream) {
-          send(gamestream, { op: "newball"
+        if (gamechan) {
+          send(gamechan, { op: "newball"
                            , ball: ball
                            , leftscore: leftscore.score
                            , rightscore: rightscore.score 
@@ -321,10 +321,10 @@ $(document).ready(function() {
     // Check if an incomming message is of type 
     // JSON, if so, then call `callback`.
 
-    return function(graph) {
+    return function(event) {
       var msg;
       try {
-        msg = JSON.parse(graph);
+        msg = JSON.parse(event.data);
       } catch (jsonDecodeException) {
         return;
       }
@@ -332,54 +332,56 @@ $(document).ready(function() {
     }    
   }
   
-  function send(stream, msg) {
+  function send(channel, msg) {
     // Encodes and send's a message to specified
-    // `stream`.
+    // `channel`.
     
-    if (!stream) {
+    if (!channel) {
       return;
     }
 
-    stream.send(JSON.stringify(msg));
+    channel.send(JSON.stringify(msg));
   }
   
   function claimStream(callback) {
-    // Create a new game by creating a new HydnaStream on a
+    // Create a new game by creating a new HydnaChannel on a
     // random address.
     
     var maxrooms = ROOM_END_ADDR - ROOM_START_ADDR;
     var addr = ROOM_START_ADDR + parseInt(Math.random() * ROOM_END_ADDR);
     var random = parseInt(Math.random() * 0xffffffff);
     var claimcount = 0;
-    var stream;
+    var channel;
     var claimTimeoutId;
     
     function claimCallback() {
-      // Send out probe messages on stream. If 
-      // nobody else has sent a message on stream
+      // Send out probe messages on channel. If 
+      // nobody else has sent a message on channel
       // for 1 sec, then it is safe to claim the
-      // stream.
+      // channel.
       
       if (++claimcount == 10) {
-        stream.onmessage = null;
-        callback(stream, addr);
+        channel.onmessage = null;
+        callback(channel, addr);
       } else {
-        send(stream, { op: "claim", id: random });
+        send(channel, { op: "claim", id: random });
         claimTimeoutId = setTimeout(claimCallback, 100);
       }
     }
 
-    stream = new HydnaStream(HYDNA_URI + addr, "rw");
+    channel = new HydnaChannel(HYDNA_URI + addr, "rw");
+
+    channel.onopen = claimCallback;
     
-    stream.onmessage = expectJson(function(msg) {
+    channel.onmessage = expectJson(function(msg) {
       // Check if someone else has claimed
-      // the stream already. If so, create 
-      // a new random stream.
+      // the channel already. If so, create 
+      // a new random channel.
       
       if (msg.op !== "claim" || msg.id !== random) {
 
-        stream.close();
-        stream = null;
+        channel.close();
+        channel = null;
 
         clearTimeout(claimTimeoutId);
 
@@ -389,8 +391,6 @@ $(document).ready(function() {
       }
       
     });
-    
-    claimTimeoutId = setTimeout(claimCallback, 100);
     
   }
   
@@ -406,12 +406,12 @@ $(document).ready(function() {
     resetGameLoop(function() {});
   }
   
-  function enterServerMode(mystream, remotestream) {
+  function enterServerMode(mychan, remotechan) {
     var connectionTimeout = Date.now();
     var tick = 0;
     
     gamestate = "server-mode";
-    gamestream = remotestream;
+    gamechan = remotechan;
     
     leftscore.score = 0;
     rightscore.score = 0;
@@ -429,9 +429,9 @@ $(document).ready(function() {
         rightPaddle = null;
         ball = null;
         
-        mystream.close();
-        remotestream.close();
-        gamestream = null;
+        mychan.close();
+        remotechan.close();
+        gamechan = null;
         
         resetGameLoop();
         
@@ -441,7 +441,7 @@ $(document).ready(function() {
       
       if (leftscore.score == MAX_SCORE || rightscore.score == MAX_SCORE) {
         
-        send(remotestream, { op: "end"
+        send(remotechan, { op: "end"
                            , leftscore: leftscore.score
                            , rightscore: rightscore.score
                            });
@@ -450,9 +450,9 @@ $(document).ready(function() {
         rightPaddle = null;
         ball = null;
 
-        mystream.close();
-        remotestream.close();
-        gamestream = null;
+        mychan.close();
+        remotechan.close();
+        gamechan = null;
 
         resetGameLoop();
       
@@ -471,7 +471,7 @@ $(document).ready(function() {
       tick++;
       
       if (tick % 10 == 0) {
-        send(remotestream, { op: "update"
+        send(remotechan, { op: "update"
                            , p1: leftPaddle.pos.y
                            , p2: rightPaddle.pos.y
                            , ballvel: ball.vel
@@ -480,7 +480,7 @@ $(document).ready(function() {
       }
     }
     
-    mystream.onmessage = expectJson(function(msg) {
+    mychan.onmessage = expectJson(function(msg) {
       switch (msg.op) {
         
         case "join":
@@ -488,7 +488,7 @@ $(document).ready(function() {
           // we already have a client. Send back a 
           // reject message.
         
-          send(stream, { op: "reject", id: msg.id });
+          send(channel, { op: "reject", id: msg.id });
           break;
           
         case "action":
@@ -518,7 +518,7 @@ $(document).ready(function() {
     
     status.html("Game starts in 2 seconds");
     
-    send(remotestream, { op: "accept" });
+    send(remotechan, { op: "accept" });
     
     setTimeout(function() {
       // Start game in 2 seconds. 
@@ -531,7 +531,7 @@ $(document).ready(function() {
       leftscore.text(0);
       rightscore.text(0);
       
-      send(remotestream, { op: "start"
+      send(remotechan, { op: "start"
                          , ball: ball
                          , leftscore: 0
                          , rightscore: 0 
@@ -542,7 +542,7 @@ $(document).ready(function() {
     }, 2000);
   }
   
-  function enterClientMode(mystream, remotestream) {
+  function enterClientMode(mychan, remotechan) {
     // Put game in client mode.
     
     var connectionTimeout = Date.now();
@@ -551,7 +551,7 @@ $(document).ready(function() {
     status.html("Game starts in 2 seconds");
     
     gamestate = "client-mode";
-    gamestream = remotestream;
+    gamechan = remotechan;
     
     leftscore.score = 0;
     rightscore.score = 0;
@@ -568,9 +568,9 @@ $(document).ready(function() {
         rightPaddle = null;
         ball = null;
         
-        mystream.close();
-        remotestream.close();
-        gamestream = null;
+        mychan.close();
+        remotechan.close();
+        gamechan = null;
         
         resetGameLoop();
         
@@ -581,11 +581,11 @@ $(document).ready(function() {
       tick++;
       
       if (tick % 30 == 0) {
-        send(remotestream, { op: "noaction" });
+        send(remotechan, { op: "noaction" });
       }
     }
     
-    mystream.onmessage = expectJson(function(msg) {
+    mychan.onmessage = expectJson(function(msg) {
 
       switch (msg.op) {
         
@@ -615,9 +615,9 @@ $(document).ready(function() {
           rightPaddle = null;
           ball = null;
 
-          mystream.close();
-          remotestream.close();
-          gamestream = null;
+          mychan.close();
+          remotechan.close();
+          gamechan = null;
 
           resetGameLoop();
         
@@ -684,9 +684,9 @@ $(document).ready(function() {
     
   }
   
-  function findGame(announcestream, mystream, addr) {
+  function findGame(announcechan, mychan, addr) {
     var readycount = 0;
-    var remotestream;
+    var remotechan;
     var jointimerid;
     var ticktimerid;
     
@@ -696,9 +696,9 @@ $(document).ready(function() {
 
       readycount++;
 
-      if (remotestream) {
+      if (remotechan) {
         // Reset `readycount` if we got an 
-        // `remotestream`. 
+        // `remotechan`. 
         
         readycount = 0;
       }
@@ -710,13 +710,13 @@ $(document).ready(function() {
         // listener `onmessage`, we do not need to
         // answer does any more.
         
-        announcestream.onmessage = null;
-        mystream.onmessage = null;
+        announcechan.onmessage = null;
+        mychan.onmessage = null;
         
         clearTimeout(ticktimerid);
         clearTimeout(jointimerid);
         
-        createGame(announcestream, mystream, addr);
+        createGame(announcechan, mychan, addr);
 
         return;
       }
@@ -729,19 +729,19 @@ $(document).ready(function() {
     
     ticktimerid = setTimeout(tickCallback, 0);
     
-    mystream.onmessage = expectJson(function(msg) {
+    mychan.onmessage = expectJson(function(msg) {
       
       switch (msg.op) {
 
         case "reject":
           // Our request was rejected. Reset
-          // `remotestream`, try to find an
+          // `remotechan`, try to find an
           // other game instead.
 
           clearTimeout(jointimerid);
 
-          remotestream.close();
-          remotestream = null;
+          remotechan.close();
+          remotechan = null;
           break;
 
         case "accept":
@@ -750,20 +750,20 @@ $(document).ready(function() {
           // call `callback`.
 
           clearTimeout(jointimerid);
-          mystream.onmessage = null;
+          mychan.onmessage = null;
 
           clearTimeout(ticktimerid);
 
-          announcestream.close();
+          announcechan.close();
 
-          enterClientMode(mystream, remotestream);
+          enterClientMode(mychan, remotechan);
           break;
       }
     });
       
-    announcestream.onmessage = expectJson(function(msg) {
+    announcechan.onmessage = expectJson(function(msg) {
 
-      if (remotestream || msg.op !== "announce") {
+      if (remotechan || msg.op !== "announce") {
         // Ignore the announcement if we currently
         // waiting for a response or if message
         // op isn't `announce`.
@@ -771,37 +771,37 @@ $(document).ready(function() {
         return; 
       }
 
-      remotestream = new HydnaStream(HYDNA_URI + msg.id, "w");
+      remotechan = new HydnaChannel(HYDNA_URI + msg.id, "w");
 
-      remotestream.onopen = function() {
-        // Send a join request to stream with a randomly
+      remotechan.onopen = function() {
+        // Send a join request to channel with a randomly
         // created ID.
 
-        send(remotestream, { op: "join", id: addr });
+        send(remotechan, { op: "join", id: addr });
       }
 
       jointimerid = setTimeout(function() {
         // Give timeout one second to accept. 
 
-        remotestream.close();
-        remotestream = null;
+        remotechan.close();
+        remotechan = null;
       }, 1000);
 
     });
   }
   
-  function createGame(announcestream, mystream, addr) {
+  function createGame(announcechan, mychan, addr) {
     var readycount = 0;
     var ticktimerid;
     
     function tickCallback() {
-      // Send out a ping message to announce stream and game
-      // room stream. This let our opponent find us.
+      // Send out a ping message to announce channel and game
+      // room channel. This let our opponent find us.
       
       readycount++;
-      
-      send(announcestream, {op: "announce", id: addr});
-      send(mystream, {op: "announce", id: addr});
+
+      send(announcechan, {op: "announce", id: addr});
+      send(mychan, {op: "announce", id: addr});
     
       // Update status text, for user feedback..
       status.html("Waiting for player to join" + getDots(readycount));
@@ -811,23 +811,23 @@ $(document).ready(function() {
     
     ticktimerid = setTimeout(tickCallback, 0);
     
-    mystream.onmessage = expectJson(function(msg) {
+    mychan.onmessage = expectJson(function(msg) {
       // A remote client is sending us a join 
       // request. Accept it and start game.
-      var remotestream;
+      var remotechan;
 
       if (msg.op == "join") {
 
-        mystream.onmessage = null;
+        mychan.onmessage = null;
         
         clearTimeout(ticktimerid);
 
-        announcestream.close();
+        announcechan.close();
         
-        remotestream = new HydnaStream(HYDNA_URI + msg.id, "w");
+        remotechan = new HydnaChannel(HYDNA_URI + msg.id, "w");
 
-        remotestream.onopen = function() {
-          enterServerMode(mystream, remotestream);
+        remotechan.onopen = function() {
+          enterServerMode(mychan, remotechan);
         }
       }
     });
