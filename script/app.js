@@ -1,7 +1,7 @@
 $(document).ready(function() {
   
   // Game contants
-  var HYDNA_URI = "public.hydna.net/";
+  var HYDNA_URI = "pong.hydna.net/"; // Change this to your own domain
   var HYDNA_ANNOUNCE_ID = 5000;
   var DELTA_TIME = 0.017;
   var PADDLE_THICKNESS = 10;
